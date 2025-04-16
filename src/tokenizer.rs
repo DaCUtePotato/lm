@@ -1,7 +1,7 @@
 
 use std::collections::HashMap;
 
-fn build_char_vocab(corpus: &[&str]) -> HashMap<char, usize> {
+pub fn build_char_vocab(corpus: &[&str]) -> HashMap<char, usize> {
     let mut vocab = HashMap::new();
     let mut idx = 0;
     for line in corpus {
@@ -15,7 +15,7 @@ fn build_char_vocab(corpus: &[&str]) -> HashMap<char, usize> {
     vocab
 }
 
-fn tokenize_char_level(
+pub fn tokenize_char_level(
     text: &str,
     vocab: &HashMap<char, usize>,
 ) -> (Vec<usize>, HashMap<char, usize>) {
