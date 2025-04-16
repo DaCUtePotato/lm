@@ -5,10 +5,3 @@ version = 4
 [[package]]
 name = "main"
 version = "0.1.0"
-dependencies = [
- "tokenizer",
-]
-
-[[package]]
-name = "tokenizer"
-version = "0.1.0"
