@@ -16,21 +16,23 @@ pub fn save_vocab(vocab: &HashMap<char, usize>, filename: &str) -> std::io::Resu
     Ok(())
 }
 
-pub fn load_vocab(filename: &str) -> std::io::Result<HashMap<String, usize>> {
-    let file = File::open(filename)?;
+pub fn load_vocab(filename: &str) -> HashMap<char, usize> {
+    let file = File::open(filename).expect("Failed to open vocab file");
     let reader = BufReader::new(file);
     let mut vocab = HashMap::new();
 
     for line_result in reader.lines() {
-        let line = line_result?;
-        let mut parts = line.split('\t');
-        if let (Some(token), Some(idx_str)) = (parts.next(), parts.next()) {
-            if let Ok(idx) = idx_str.parse::<usize>() {
-                vocab.insert(token.to_string(), idx);
+        if let Ok(line) = line_result {
+            let mut parts = line.split('\t');
+            if let (Some(token), Some(idx_str)) = (parts.next(), parts.next()) {
+                if let (Some(ch), Ok(idx)) = (token.chars().next(), idx_str.parse::<usize>()) {
+                    vocab.insert(ch, idx);
+                }
             }
         }
     }
-    Ok(vocab)
+
+    vocab
 }
 
 pub fn split_dataset<'a>(lines: &'a [&str], train_ratio: f32) -> (Vec<&'a str>, Vec<&'a str>) {
