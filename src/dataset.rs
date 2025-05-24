@@ -10,7 +10,10 @@ use std::io::{BufReader, BufWriter, Write};
 pub fn save_vocab(vocab: &HashMap<char, usize>, filename: &str) -> std::io::Result<()> {
     let file = File::create(filename)?;
     let mut writer = BufWriter::new(file);
-    for (ch, idx) in vocab {
+    // collect and sort by index such that the vocab file doesn't start at a random number
+    let mut entries: Vec<(&char, &usize)> = vocab.iter().collect();
+    entries.sort_by_key(|&(_, idx)| idx);
+    for (ch, idx) in entries {
         writeln!(writer, "{}\t{}", ch, idx)?;
     }
     Ok(())
