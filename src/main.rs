@@ -9,12 +9,14 @@ use std::path::Path;
 use dataset::{chunk_data, load_token_ids_bin, load_vocab, save_vocab, split_dataset};
 use model::embedding::Embedding;
 use model::output::OutputProjection;
+use model::train::{backward_output_projection, cross_entropy_loss};
 use model::transformer_block::TransformerBlock;
 use tokenizer::build_char_vocab;
 
 fn main() {
     // declaring vars...
     let train = true;
+    let learning_rate = 0.01;
     let min_freq = 10000;
     let dataset = read_to_string("dataset.txt").expect("Failed to read Dataset");
     let lines: Vec<&str> = dataset.lines().collect();
@@ -63,6 +65,28 @@ fn main() {
         let token_ids = load_token_ids_bin("tokens.bin").expect("Failed to load tokens");
         let batches = chunk_data(&token_ids, max_len);
         println!("Loaded the dataset...");
+        for epoch in 0..10 {
+            println!("Epoch {epoch}");
+
+            for batch in &batches {
+                let input = &batch[..batch.len() - 1];
+                let target = &batch[1..];
+
+                let embedded = embedding.forward(input);
+                let transformed = transformer.forward(&embedded);
+                let logits = output.forward(transformed.clone());
+                let loss = cross_entropy_loss(&logits, target);
+                println!("Loss: {loss}");
+
+                let _grad_hidden = backward_output_projection(
+                    &transformed,
+                    &logits,
+                    target,
+                    vocab_size,
+                    learning_rate,
+                );
+            }
+        }
     }
 
     // Building the Embedding Layer
