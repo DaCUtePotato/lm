@@ -1,4 +1,4 @@
-use super::attention::MultiHeadAttention;
+use super::attention::{scaled_dot_product_attention, MultiHeadAttention};
 use super::embedding;
 use super::feed_forward::FeedForward;
 use super::layer_norm::{self, LayerNorm};
