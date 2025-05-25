@@ -1,4 +1,4 @@
-use std::{f32::MAX_10_EXP, sync::Exclusive};
+use std::f32::MAX_10_EXP;
 
 use rand::Rng;
 
@@ -17,7 +17,7 @@ impl Embedding {
                     .collect()
             })
             .collect();
-        let pos_encoding = positional_encoding(max_len, embedding_dim);
+        let pos_encoding = Self::positional_encoding(max_len, embedding_dim);
         Self {
             weight,
             pos_encoding,

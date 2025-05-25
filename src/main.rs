@@ -15,6 +15,8 @@ fn main() {
     let lines: Vec<&str> = dataset.lines().collect();
     let vocab_filename = "vocab.txt";
 
+    let max_len = 128;
+
     let (train_set, val_set) = split_dataset(&lines, 0.9);
 
     let joined_train = train_set.join("\n");
@@ -37,7 +39,7 @@ fn main() {
     let vocab_size = vocab.len();
 
     // Building the Embedding Layer
-    let embedding = Embedding::new(vocab_size, embedding_dim);
+    let embedding = Embedding::new(vocab_size, embedding_dim, max_len);
     println!(
         "Created embedding layer with vocab size {} and dim {}",
         vocab_size, embedding_dim
