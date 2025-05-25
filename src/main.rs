@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::path::Path;
 
-use dataset::{load_vocab, save_vocab, split_dataset};
+use dataset::{chunk_data, load_token_ids_bin, load_vocab, save_vocab, split_dataset};
 use model::embedding::Embedding;
 use model::output::OutputProjection;
 use model::transformer_block::TransformerBlock;
@@ -14,6 +14,7 @@ use tokenizer::build_char_vocab;
 
 fn main() {
     // declaring vars...
+    let train = true;
     let min_freq = 10000;
     let dataset = read_to_string("dataset.txt").expect("Failed to read Dataset");
     let lines: Vec<&str> = dataset.lines().collect();
@@ -52,6 +53,17 @@ fn main() {
     }
 
     let vocab_size = vocab.len();
+
+    if !Path::new("tokens.bin").exists() {
+        println!("Please run the Python script to pre-tokenise the dataset.");
+        return;
+    }
+
+    if train {
+        let token_ids = load_token_ids_bin("tokens.bin").expect("Failed to load tokens");
+        let batches = chunk_data(&token_ids, max_len);
+        println!("Loaded the dataset...");
+    }
 
     // Building the Embedding Layer
     let embedding = Embedding::new(vocab_size, embedding_dim, max_len);
