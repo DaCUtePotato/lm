@@ -1,13 +1,16 @@
-mod tokenizer;
-use std::fs::read_to_string;
-use tokenizer::{build_char_vocab, tokenize_char_level};
 mod dataset;
-use dataset::{load_vocab, save_vocab, split_dataset};
-use std::path::Path;
 mod model;
-use model::embedding::Embedding;
-use model::transformer_block::TransformerBlock;
+mod tokenizer;
+
 use std::collections::HashMap;
+use std::fs::read_to_string;
+use std::path::Path;
+
+use dataset::{load_vocab, save_vocab, split_dataset};
+use model::embedding::Embedding;
+use model::output::OutputProjection;
+use model::transformer_block::TransformerBlock;
+use tokenizer::build_char_vocab;
 
 fn main() {
     // declaring vars...
@@ -40,6 +43,14 @@ fn main() {
         println!("Saved vocab is: {:?}", vocab)
     };
 
+    // Build reverse vocab for decoding logits
+    let mut index_to_char = vec!['?'; vocab.len()];
+    for (ch, idx) in &vocab {
+        if *idx < index_to_char.len() {
+            index_to_char[*idx] = *ch;
+        }
+    }
+
     let vocab_size = vocab.len();
 
     // Building the Embedding Layer
@@ -67,5 +78,28 @@ fn main() {
     println!("After Transformer Block: ");
     for (i, vector) in transformed.iter().enumerate() {
         println!("{}, {:?}", example.chars().nth(i).unwrap(), vector);
+    }
+
+    let output = OutputProjection::new(embedding_dim, vocab_size);
+    let logits = output.forward(transformed);
+
+    println!("Logits: ");
+    for (i, logit_vector) in logits.iter().enumerate() {
+        println!("{}, {:?}", example.chars().nth(i).unwrap(), logit_vector);
+    }
+    println!("Predicted Chars:");
+    for (i, logit_vector) in logits.iter().enumerate() {
+        if let Some((max_idx, _)) = logit_vector
+            .iter()
+            .enumerate()
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+        {
+            let predicted_char = index_to_char.get(max_idx).copied().unwrap_or('?');
+            println!(
+                "Input: '{}', Predicted: '{}'",
+                example.chars().nth(i).unwrap(),
+                predicted_char
+            );
+        }
     }
 }

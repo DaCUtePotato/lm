@@ -138,11 +138,11 @@ impl MultiHeadAttention {
 
     pub fn forward(&self, x: &[Vec<f32>], train: bool) -> Vec<Vec<f32>> {
         let mut q = Self::matmul(x, &self.w_q);
-        add_bias(&mut q, &self.b_q);
+        Self::add_bias(&mut q, &self.b_q);
         let mut k = Self::matmul(x, &self.w_k);
-        add_bias(&mut k, &self.b_k);
+        Self::add_bias(&mut k, &self.b_k);
         let mut v = Self::matmul(x, &self.w_v);
-        add_bias(&mut v, &self.b_v);
+        Self::add_bias(&mut v, &self.b_v);
 
         let mut heads = vec![];
 
@@ -155,7 +155,7 @@ impl MultiHeadAttention {
             let v_head: Vec<Vec<f32>> = v.iter().map(|row| row[start..end].to_vec()).collect();
 
             let mask = causal_mask(x.len());
-            let effective_mask = mask.cloned().unwrap_or_else(|| causal_mask(x.len()));
+            let effective_mask = mask.clone(); //.unwrap_or_else(|| causal_mask(x.len()));
 
             let head_out = scaled_dot_product_attention(&q_head, &k_head, &v_head, Some(&mask));
 
@@ -176,7 +176,7 @@ impl MultiHeadAttention {
         if train {
             dropout(&mut output, 0.1);
         }
-        add_bias(&mut output, &self.b_o);
+        Self::add_bias(&mut output, &self.b_o);
         output
     }
 }

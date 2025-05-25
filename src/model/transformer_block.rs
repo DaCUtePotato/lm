@@ -22,7 +22,7 @@ impl TransformerBlock {
 
     pub fn forward(&self, x: &[Vec<f32>]) -> Vec<Vec<f32>> {
         // Self-attention+residual+norm
-        let attn_out = self.mha.forward(x);
+        let attn_out = self.mha.forward(x, true);
         let res1: Vec<Vec<f32>> = x
             .iter()
             .zip(attn_out.iter())
