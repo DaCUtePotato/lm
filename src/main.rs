@@ -6,6 +6,7 @@ use dataset::{load_vocab, save_vocab, split_dataset};
 use std::path::Path;
 mod model;
 use model::embedding::Embedding;
+use model::transformer_block::TransformerBlock;
 use std::collections::HashMap;
 
 fn main() {
@@ -24,6 +25,9 @@ fn main() {
 
     let embedding_dim = 16;
     let vocab: HashMap<char, usize>;
+
+    let transformer = TransformerBlock::new(embedding_dim);
+    println!("Created Transformer Block :D");
 
     // Building vocab/loading vocab
     if !Path::new(vocab_filename).exists() {
@@ -56,6 +60,12 @@ fn main() {
     let embedded = embedding.forward(&token_ids);
     println!("Embeddings: ");
     for (i, vector) in embedded.iter().enumerate() {
+        println!("{}, {:?}", example.chars().nth(i).unwrap(), vector);
+    }
+
+    let transformed = transformer.forward(&embedded);
+    println!("After Transformer Block: ");
+    for (i, vector) in transformed.iter().enumerate() {
         println!("{}, {:?}", example.chars().nth(i).unwrap(), vector);
     }
 }
