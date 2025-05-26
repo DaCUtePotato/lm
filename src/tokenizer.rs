@@ -1,3 +1,4 @@
+
 use std::collections::HashMap;
 
 pub fn build_char_vocab(corpus: &[&str], min_freq: usize) -> HashMap<char, usize> {

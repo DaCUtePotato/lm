@@ -1,3 +1,4 @@
+
 mod dataset;
 mod model;
 mod tokenizer;
@@ -72,6 +73,7 @@ fn main() {
 
     if train {
         let token_ids = load_token_ids_bin("tokens.bin").expect("Failed to load tokens");
+
         let batches = chunk_data(&token_ids, max_len);
         println!("Loaded the dataset...");
         for epoch in 0..10 {
