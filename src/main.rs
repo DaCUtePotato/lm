@@ -9,7 +9,7 @@ use std::path::Path;
 use dataset::{chunk_data, load_token_ids_bin, load_vocab, save_vocab, split_dataset};
 use model::embedding::Embedding;
 use model::output::OutputProjection;
-use model::train::{backward_output_projection, cross_entropy_loss};
+use model::train::*;
 use model::transformer_block::TransformerBlock;
 use tokenizer::build_char_vocab;
 
@@ -61,6 +61,15 @@ fn main() {
         return;
     }
 
+    // Building the Embedding Layer
+    let embedding = Embedding::new(vocab_size, embedding_dim, max_len);
+    println!(
+        "Created embedding layer with vocab size {} and dim {}",
+        vocab_size, embedding_dim
+    );
+
+    let output = OutputProjection::new(embedding_dim, vocab_size);
+
     if train {
         let token_ids = load_token_ids_bin("tokens.bin").expect("Failed to load tokens");
         let batches = chunk_data(&token_ids, max_len);
@@ -76,25 +85,13 @@ fn main() {
                 let transformed = transformer.forward(&embedded);
                 let logits = output.forward(transformed.clone());
                 let loss = cross_entropy_loss(&logits, target);
-                println!("Loss: {loss}");
+                println!("Loss: {:?}", loss);
 
-                let _grad_hidden = backward_output_projection(
-                    &transformed,
-                    &logits,
-                    target,
-                    vocab_size,
-                    learning_rate,
-                );
+                //let _grad_hidden =
+                //OutputProjection{&transformed, &logits, target, vocab_size, learning_rate};
             }
         }
     }
-
-    // Building the Embedding Layer
-    let embedding = Embedding::new(vocab_size, embedding_dim, max_len);
-    println!(
-        "Created embedding layer with vocab size {} and dim {}",
-        vocab_size, embedding_dim
-    );
 
     //testing
     let example = "Hello World!";
@@ -116,7 +113,6 @@ fn main() {
         println!("{}, {:?}", example.chars().nth(i).unwrap(), vector);
     }
 
-    let output = OutputProjection::new(embedding_dim, vocab_size);
     let logits = output.forward(transformed);
 
     println!("Logits: ");
