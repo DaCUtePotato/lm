@@ -76,6 +76,7 @@ fn main() {
 
         let batches = chunk_data(&token_ids, max_len);
         println!("Loaded the dataset...");
+
         for epoch in 0..10 {
             println!("Epoch {epoch}");
 
@@ -87,7 +88,7 @@ fn main() {
                 let transformed = transformer.forward(&embedded);
                 let logits = output.forward(transformed.clone());
                 let loss = cross_entropy_loss(&logits, target);
-                println!("Loss: {:?}", loss);
+                //println!("Loss: {:?}", loss);
 
                 //let _grad_hidden =
                 //OutputProjection{&transformed, &logits, target, vocab_size, learning_rate};
@@ -104,7 +105,7 @@ fn main() {
 
     println!("Token IDs for '{}': {:?}", example, token_ids);
     let embedded = embedding.forward(&token_ids);
-    println!("Embeddings: ");
+    //println!("Embeddings: ");
     for (i, vector) in embedded.iter().enumerate() {
         println!("{}, {:?}", example.chars().nth(i).unwrap(), vector);
     }
