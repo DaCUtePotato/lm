@@ -39,12 +39,12 @@ fn main() {
     // Building vocab/loading vocab
     if !Path::new(vocab_filename).exists() {
         vocab = build_char_vocab(&lines, min_freq);
-        println!("New Vocab: {:?}", vocab);
+        //println!("New Vocab: {:?}", vocab);
         let result = save_vocab(&vocab, vocab_filename);
-        println!("Aaaand the result is: {:?}", result)
+        //println!("Aaaand the result is: {:?}", result)
     } else {
         vocab = load_vocab(vocab_filename);
-        println!("Saved vocab is: {:?}", vocab)
+        //println!("Saved vocab is: {:?}", vocab)
     };
 
     // Build reverse vocab for decoding logits
