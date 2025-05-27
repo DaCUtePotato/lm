@@ -6,29 +6,33 @@ use std::fs;
 const MIN_FREQ: usize = 10000;
 
 fn main() {
-    let content = fs::read_to_string("dataset.txt").unwrap();
+    if !fs::exists("dataset.txt").unwrap() {
+        println!("You have forgotten to put the dataset into this folder.......... You stupid stupid Balatro Joker");
+    } else {
+        let content = fs::read_to_string("dataset.txt").unwrap();
 
-    let vocab = build_vocab(&content);
+        let vocab = build_vocab(&content);
 
-    let mut vocab_txt = String::new();
+        let mut vocab_txt = String::new();
 
-    for (ch, idx) in &vocab {
-        vocab_txt.push_str(&format!("{}\t{}\n", ch, idx));
+        for (ch, idx) in &vocab {
+            vocab_txt.push_str(&format!("{}\t{}\n", ch, idx));
+        }
+
+        fs::write("vocab.txt", vocab_txt).unwrap();
+
+        let mut token_ids = tokenize(content, vocab);
+
+        token_ids.sort();
+
+        let mut buffer = Vec::new(); // Acts like a "binary string"
+
+        for token in token_ids {
+            buffer.write_u32::<LittleEndian>(token).unwrap();
+        }
+
+        fs::write("tokens.bin", buffer).unwrap();
     }
-
-    fs::write("vocab.txt", vocab_txt).unwrap();
-
-    let mut token_ids = tokenize(content, vocab);
-
-    token_ids.sort();
-
-    let mut buffer = Vec::new(); // Acts like a "binary string"
-
-    for token in token_ids {
-        buffer.write_u32::<LittleEndian>(token).unwrap();
-    }
-
-    fs::write("tokens.bin", buffer).unwrap();
 }
 
 fn build_vocab(text: &str) -> HashMap<char, usize> {
