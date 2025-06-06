@@ -1,7 +1,13 @@
-a
-nuh uh
-
-huhuhahaha
-
-I am a stupid idiot
-  - Ruben
+\documentclass[12pt, letterpaper]{article}
+\usepackage{graphicx}
+\title{Wie funktioniert eigentlich eine LM?}
+\author{Albérique und Ruben L.}
+\date{\today}
+\begin{document}
+\maketitle
+\newpage
+\section{Einführung}
+Wir kennen sie alle und haben sie mit Sicherheit schon einmal bentzt: LM(Language Model)s. Kommerzielle Modelle, die wir normalerweise benutzen, sind sogar LLM(\textit{Large} Language Model)s. Sie sind weitaus leistungsstärker als kleine Modelle, sie funktionieren aber größtenteils gleich. Hier werden wir probieren, zu erklären, \textit{wie}.
+\section{Grundlagen}
+Neuronale Netzwerke sollte uns allen ein Begriff sein. LMs besitzen auch solche Netzwerke, sie sind jedoch ein wenig abgewandelt: Bei einer LM heissen diese Netzwerke "Transformer". Sie funktionieren grundsätzlich gleich, nur werden die Netzwerke in Schichten eingebaut, dann heissen sie Transformer. Jedoch können die Neuronen nur mit Zahlen arbeiten, nicht mit Buchstaben. Wie geht man dagegen vor? Im Prinzip ist es sehr simpel: Das Netzwerk wandelt einzelne Buchstaben, Wörter oder Teile von Wörtern in Zahlen (Tokens) um. Diese werden in einem Vokabular gespeichert, damit immer die Buchstaben immer dem gleichen Token entsprechen. 
+\end{document}
