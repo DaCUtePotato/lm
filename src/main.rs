@@ -1,4 +1,3 @@
-
 mod dataset;
 mod model;
 mod tokenizer;
@@ -16,7 +15,8 @@ use tokenizer::build_char_vocab;
 
 fn main() {
     // declaring vars...
-    let train = true;
+    let mut train = true;
+    let num_heads = 4;
     let learning_rate = 0.01;
     let min_freq = 10000;
     let dataset = read_to_string("dataset.txt").expect("Failed to read Dataset");
@@ -31,9 +31,11 @@ fn main() {
     let joined_val = val_set.join("\n");
 
     let embedding_dim = 16;
+    let ff_hidden_dim = embedding_dim * 4;
+
     let vocab: HashMap<char, usize>;
 
-    let transformer = TransformerBlock::new(embedding_dim);
+    let mut transformer = TransformerBlock::new(embedding_dim, num_heads, ff_hidden_dim);
     println!("Created Transformer Block :D");
 
     // Building vocab/loading vocab
@@ -63,13 +65,13 @@ fn main() {
     }
 
     // Building the Embedding Layer
-    let embedding = Embedding::new(vocab_size, embedding_dim, max_len);
+    let mut embedding = Embedding::new(vocab_size, embedding_dim, max_len);
     println!(
         "Created embedding layer with vocab size {} and dim {}",
         vocab_size, embedding_dim
     );
 
-    let output = OutputProjection::new(embedding_dim, vocab_size);
+    let mut output = OutputProjection::new(embedding_dim, vocab_size);
 
     if train {
         let token_ids = load_token_ids_bin("tokens.bin").expect("Failed to load tokens");
@@ -84,14 +86,57 @@ fn main() {
                 let input = &batch[..batch.len() - 1];
                 let target = &batch[1..];
 
-                let embedded = embedding.forward(input);
-                let transformed = transformer.forward(&embedded);
-                let logits = output.forward(transformed.clone());
+                // Forward
+                let embedded = embedding.forward(input); // shape: [len-1][dim]
+                let transformed = transformer.forward(&embedded); // same shape
+                let logits = output.forward(transformed.clone()); // [len-1][vocab_size]
                 let loss = cross_entropy_loss(&logits, target);
-                //println!("Loss: {:?}", loss);
+                println!("Loss: {:.4}", loss);
 
-                //let _grad_hidden =
-                //OutputProjection{&transformed, &logits, target, vocab_size, learning_rate};
+                if loss <= 0.0001 {
+                    println!("Hallo");
+                    train = false;
+                    break;
+                }
+
+                // If loss is effectively zero, print prediction
+                if loss < 1e-8 {
+                    println!("Loss reached zero, printing prediction:");
+
+                    // For each timestep, pick the predicted char with max logit
+                    for (i, logit_vector) in logits.iter().enumerate() {
+                        if let Some((max_idx, _)) = logit_vector
+                            .iter()
+                            .enumerate()
+                            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+                        {
+                            let predicted_char = index_to_char.get(max_idx).copied().unwrap_or('?');
+                            println!(
+                                "Input: '{}', Predicted: '{}'",
+                                input
+                                    .iter()
+                                    .map(|&idx| index_to_char[idx])
+                                    .collect::<String>()
+                                    .chars()
+                                    .nth(i)
+                                    .unwrap_or('?'),
+                                predicted_char
+                            );
+                        }
+                    }
+                }
+
+                // Backward
+                let grad_logits = cross_entropy_grad(&logits, target); // [len-1][vocab_size]
+                let grad_transformer_out = output.backward(&grad_logits, &transformed); // output → transformer
+                let grad_embedded = transformer.backward(&grad_transformer_out); // transformer → embedding
+
+                embedding.backward(&grad_embedded, input); // Just for gradients
+
+                // Step
+                embedding.step(learning_rate);
+                transformer.step(learning_rate);
+                output.step(learning_rate);
             }
         }
     }
