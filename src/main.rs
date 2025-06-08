@@ -5,6 +5,7 @@ mod tokenizer;
 
 use std::collections::HashMap;
 use std::fs::read_to_string;
+use std::io::{stdout, Write};
 use std::path::Path;
 
 use dataset::{chunk_data, load_token_ids_bin, load_vocab, save_vocab, split_dataset};
@@ -80,10 +81,8 @@ fn main() {
         let batches = chunk_data(&token_ids, max_len);
         println!("Loaded the dataset...");
 
-        for epoch in 0..10 {
-            println!("Epoch {epoch}");
-
-            for batch in &batches {
+        for epoch in 0..10000 {
+            for (batch_num, batch) in batches.iter().enumerate() {
                 let input = &batch[..batch.len() - 1];
                 let target = &batch[1..];
 
@@ -92,7 +91,13 @@ fn main() {
                 let transformed = transformer.forward(&embedded); // same shape
                 let logits = output.forward(transformed.clone()); // [len-1][vocab_size]
                 let loss = cross_entropy_loss(&logits, target);
-                println!("Loss: {:.4}", loss);
+                print!(
+                    "\rEpoch: {epoch}, Batch: {} of {},  Loss: {:.4}",
+                    batch_num + 1,
+                    batches.len(),
+                    loss
+                );
+                stdout().flush().unwrap();
 
                 // If loss is effectively zero, print prediction
                 if loss < 1e-4 {

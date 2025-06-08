@@ -17,7 +17,8 @@ fn main() {
 
         let (ch, mut idx): (Vec<char>, Vec<usize>) = vocab.iter().unzip();
 
-        idx.sort();
+        idx.sort(); // same with the sorting here (if you don't know what i'm talking about look
+                    //down to the next comment) future me here: nvm it didn't change shit
 
         for (ch, idx) in ch.iter().zip(idx.iter()) {
             vocab_txt.push_str(&format!("{}\t{}\n", ch, idx));
@@ -27,9 +28,13 @@ fn main() {
 
         let mut token_ids = tokenize(content, vocab);
 
-        token_ids.sort();
+        token_ids.sort(); // so that it is sorted, but i think that messes with the learning, as
+                          //the batches will all have the same letter at the bininging so that means it will learn to
+                          //spam a letter/token..           future me: same as above
 
-        token_ids.dedup();
+        token_ids.dedup(); // I put this here so that it would be faster and also easier to see
+                           //what was going on (definitely knew that it would make our lm not learn)         future
+                           //me: same as above
 
         let mut buffer = Vec::new(); // Acts like a "binary string"
 
