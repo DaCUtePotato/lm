@@ -1,3 +1,4 @@
+
 mod dataset;
 mod model;
 mod tokenizer;
@@ -93,14 +94,8 @@ fn main() {
                 let loss = cross_entropy_loss(&logits, target);
                 println!("Loss: {:.4}", loss);
 
-                if loss <= 0.0001 {
-                    println!("Hallo");
-                    train = false;
-                    break;
-                }
-
                 // If loss is effectively zero, print prediction
-                if loss < 1e-8 {
+                if loss < 1e-4 {
                     println!("Loss reached zero, printing prediction:");
 
                     // For each timestep, pick the predicted char with max logit

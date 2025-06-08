@@ -15,7 +15,11 @@ fn main() {
 
         let mut vocab_txt = String::new();
 
-        for (ch, idx) in &vocab {
+        let (ch, mut idx): (Vec<char>, Vec<usize>) = vocab.iter().unzip();
+
+        idx.sort();
+
+        for (ch, idx) in ch.iter().zip(idx.iter()) {
             vocab_txt.push_str(&format!("{}\t{}\n", ch, idx));
         }
 
@@ -24,6 +28,8 @@ fn main() {
         let mut token_ids = tokenize(content, vocab);
 
         token_ids.sort();
+
+        token_ids.dedup();
 
         let mut buffer = Vec::new(); // Acts like a "binary string"
 
@@ -48,7 +54,7 @@ fn build_vocab(text: &str) -> HashMap<char, usize> {
     let mut index = 0;
 
     for (ch, count) in freq {
-        if count >= MIN_FREQ {
+        if count >= MIN_FREQ && ch != '\n' {
             vocab.insert(ch, index);
             index += 1;
         }
