@@ -8,6 +8,7 @@
 \maketitle
 \newpage
 \section{Einführung}
+
 Wir kennen sie alle und haben sie mit Sicherheit schon einmal bentzt: LM(Language Model)s. Kommerzielle Modelle, die wir normalerweise benutzen, sind sogar LLM(\textit{Large} Language Model)s. Sie sind weitaus leistungsstärker als kleine Modelle, sie funktionieren aber größtenteils gleich. In einem Video und einer Präsentation werden wir probieren, zu erklären, \textit{wie}. Aber der Hauptteil unseres Projekts wird es sein, ein funktionierendes Modell zu programmieren, ohne große Libraries zu benutzen. Funkionierend heisst hier, dass wir ein Modell haben wollen, das dazu in der Lage ist, verständliche, deutsche Sätze zu bilden. Es ist gut möglich, dass wir das nicht schaffen, deshalb ist ein weniger ehrgeiziges Ziel, einfach deutsche Wörter zu bilden. Neben dem Programmieren und dem Recherchieren wird es auch wichtig sein, auf unseren nicht für das Trainieren von KIs spezialisierten Laptops dieses Modell zu trainieren und dafür eine realistische Größe zu finden.
 \section{Tokenizing, Dataset, Embedding Layer, Vocabulary}
 Der erste Schritt, den wir unternahmen, war, einen Tokenizer zu machen. Da wir nicht noch einen Algorithmus lernen wollten, der die Tokens als Wörter oder Subwörter repräsentiert, einigten wir uns auf Buchstabentokens. (Jeder Buchstabe ist also ein Token)
