@@ -19,8 +19,8 @@ fn main() {
 
         let (ch, mut idx): (Vec<char>, Vec<usize>) = vocab.iter().unzip();
 
-        idx.sort(); // same with the sorting here (if you don't know what i'm talking about look
-                    //down to the next comment) future me here: nvm it didn't change shit
+        //idx.sort(); // same with the sorting here (if you don't know what i'm talking about look
+        //down to the next comment) future me here: nvm it didn't change shit
 
         for (ch, idx) in ch.iter().zip(idx.iter()) {
             vocab_txt.push_str(&format!("{}\t{}\n", ch, idx));

@@ -100,7 +100,7 @@ fn main() {
                 stdout().flush().unwrap();
 
                 // If loss is effectively zero, print prediction
-                if loss < 1e-4 {
+                if loss < 1e-4 || batch_num % 1000 == 0 {
                     println!("Loss reached zero, printing prediction:");
 
                     // For each timestep, pick the predicted char with max logit
