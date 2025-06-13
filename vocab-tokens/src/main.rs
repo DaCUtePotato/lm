@@ -13,6 +13,8 @@ fn main() {
 
         let vocab = build_vocab(&content);
 
+        println!("Builded vocab");
+
         let mut vocab_txt = String::new();
 
         let (ch, mut idx): (Vec<char>, Vec<usize>) = vocab.iter().unzip();
@@ -24,17 +26,21 @@ fn main() {
             vocab_txt.push_str(&format!("{}\t{}\n", ch, idx));
         }
 
+        println!("Wrote the vocab");
+
         fs::write("vocab.txt", vocab_txt).unwrap();
 
         let mut token_ids = tokenize(content, vocab);
 
-        token_ids.sort(); // so that it is sorted, but i think that messes with the learning, as
-                          //the batches will all have the same letter at the bininging so that means it will learn to
-                          //spam a letter/token..           future me: same as above
+        println!("Tokenized dataset");
 
-        token_ids.dedup(); // I put this here so that it would be faster and also easier to see
-                           //what was going on (definitely knew that it would make our lm not learn)         future
-                           //me: same as above
+        //token_ids.sort(); // so that it is sorted, but i think that messes with the learning, as
+        //the batches will all have the same letter at the bininging so that means it will learn to
+        //spam a letter/token..           future me: same as above
+
+        //token_ids.dedup(); // I put this here so that it would be faster and also easier to see
+        //what was going on (definitely knew that it would make our lm not learn)         future
+        //me: same as above
 
         let mut buffer = Vec::new(); // Acts like a "binary string"
 
@@ -42,7 +48,11 @@ fn main() {
             buffer.write_u32::<LittleEndian>(token).unwrap();
         }
 
+        println!("Wrote the tokens to the buffer");
+
         fs::write("tokens.bin", buffer).unwrap();
+
+        println!("done");
     }
 }
 
