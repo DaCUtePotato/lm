@@ -19,7 +19,7 @@ fn main() {
     // declaring vars...
     let mut train = true;
     let num_heads = 4;
-    let learning_rate = 0.01;
+    let learning_rate = 1e-6;
     let min_freq = 10000;
     let dataset = read_to_string("dataset.txt").expect("Failed to read Dataset");
     let lines: Vec<&str> = dataset.lines().collect();
@@ -98,6 +98,10 @@ fn main() {
                     loss
                 );
                 stdout().flush().unwrap();
+
+                if loss.is_infinite() {
+                    println!("don't know what happened but wtf (the loss is inf)");
+                }
 
                 // If loss is effectively zero, print prediction
                 if loss < 1e-4 || batch_num % 1000 == 0 {

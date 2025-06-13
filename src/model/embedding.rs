@@ -1,3 +1,4 @@
+
 use rand::Rng;
 pub struct Embedding {
     pub weight: Vec<Vec<f32>>,       // shape: [vocab_size][embedding_dim]
@@ -11,7 +12,7 @@ impl Embedding {
         let weight = (0..vocab_size)
             .map(|_| {
                 (0..embedding_dim)
-                    .map(|_| rng.gen_range(-0.1..0.1))
+                    .map(|_| rng.gen_range(-0.01..0.01))
                     .collect()
             })
             .collect();
