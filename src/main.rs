@@ -38,7 +38,7 @@ fn main() {
     let vocab: HashMap<char, usize>;
 
     let mut transformer = TransformerBlock::new(embedding_dim, num_heads, ff_hidden_dim);
-    println!("Created Transformer Block :D");
+    //println!("Created Transformer Block :D");
 
     // Building vocab/loading vocab
     if !Path::new(vocab_filename).exists() {
