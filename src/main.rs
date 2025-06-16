@@ -1,4 +1,7 @@
 
+#![allow(unused)]
+#![allow(dead_code)]
+#![allow(deprecated)]
 mod dataset;
 mod model;
 mod tokenizer;
@@ -20,7 +23,7 @@ fn main() {
     let mut train = true;
     let num_heads = 4;
     let learning_rate = 1e-6;
-    let min_freq = 10000;
+    let min_freq = 10;
     let dataset = read_to_string("dataset.txt").expect("Failed to read Dataset");
     let lines: Vec<&str> = dataset.lines().collect();
     let vocab_filename = "vocab.txt";
