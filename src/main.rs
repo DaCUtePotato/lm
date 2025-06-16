@@ -1,4 +1,3 @@
-
 mod dataset;
 mod model;
 mod tokenizer;
@@ -146,7 +145,7 @@ fn main() {
     }
 
     //testing
-    let example = "Hello World!";
+    let example = "Entropie ";
     let token_ids: Vec<usize> = example
         .chars()
         .filter_map(|ch| vocab.get(&ch).copied())
