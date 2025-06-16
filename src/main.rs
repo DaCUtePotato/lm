@@ -37,6 +37,7 @@ fn clip_gradients(grads: &mut [Vec<f32>], max_norm: f32) {
     }
 }
 
+
 fn main() {
     let train = true;
     let num_heads = 4;
