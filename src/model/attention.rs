@@ -1,12 +1,14 @@
-use std::{f32::NEG_INFINITY, vec};
 
 use rand::Rng;
+use std::{f32::NEG_INFINITY, vec};
 
-/// This computes scaled dot-product attention
+/// Computes scaled dot-product attention.
 ///
-/// Q, K, V are matrices with shape: (sequence length, embedding dim)
-/// Returns the output of shape (sequence length, embedding dim)
-
+/// Arguments:
+/// - q, k, v: Sequences of vectors (matrices) with shape [seq_len][dim]
+/// - mask: Optional attention mask (1.0 for attend, 0.0 for block)
+///
+/// Returns output of shape [seq_len][dim]
 pub fn scaled_dot_product_attention(
     q: &[Vec<f32>],
     k: &[Vec<f32>],
@@ -15,9 +17,9 @@ pub fn scaled_dot_product_attention(
 ) -> Vec<Vec<f32>> {
     let seq_len = q.len();
     let dim = q[0].len();
-    let scale = (dim as f32).sqrt();
+    let scale = (dim as f32).sqrt(); // Scaling factor to avoid large dot products
 
-    // 1. Compute QK^T
+    // 1. Compute attention scores: QK^T / sqrt(dim)
     let mut scores = vec![vec![0.0; seq_len]; seq_len];
     for i in 0..seq_len {
         for j in 0..seq_len {
@@ -26,7 +28,7 @@ pub fn scaled_dot_product_attention(
         }
     }
 
-    // 2. Apply mask if provided
+    // 2. Apply mask, if given: replace masked positions with -∞
     if let Some(mask) = mask {
         for i in 0..seq_len {
             for j in 0..seq_len {
@@ -37,7 +39,7 @@ pub fn scaled_dot_product_attention(
         }
     }
 
-    // 3. Softmax
+    // 3. Apply softmax to each row to get attention weights
     let mut weights = vec![vec![0.0; seq_len]; seq_len];
     for i in 0..seq_len {
         let max_score = scores[i].iter().cloned().fold(NEG_INFINITY, f32::max);
@@ -48,7 +50,7 @@ pub fn scaled_dot_product_attention(
         }
     }
 
-    // 4. Compute output
+    // 4. Weighted sum of values V using attention weights
     let mut output = vec![vec![0.0; dim]; seq_len];
     for i in 0..seq_len {
         for d in 0..dim {
@@ -61,6 +63,7 @@ pub fn scaled_dot_product_attention(
     output
 }
 
+// Just a multi head attention struct (same as class)
 pub struct MultiHeadAttention {
     pub embed_dim: usize,
     pub num_heads: usize,
@@ -100,6 +103,7 @@ impl MultiHeadAttention {
         assert!(embed_dim % num_heads == 0);
         let head_dim = embed_dim / num_heads;
 
+        /// Creates a new MultiHeadAttention with random weight matrices.
         fn random_matrix(rows: usize, cols: usize) -> Vec<Vec<f32>> {
             let mut rng = rand::thread_rng();
             (0..rows)

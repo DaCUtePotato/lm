@@ -1,29 +1,33 @@
+
 pub struct FeedForward {
-    w1: Vec<Vec<f32>>,
-    b1: Vec<f32>,
-    w2: Vec<Vec<f32>>,
-    b2: Vec<f32>,
+    w1: Vec<Vec<f32>>, // Weights for first linear layer: [input_dim][hidden_dim]
+    b1: Vec<f32>,      // Bias for first layer: [hidden_dim]
+    w2: Vec<Vec<f32>>, // Weights for second linear layer: [hidden_dim][input_dim]
+    b2: Vec<f32>,      // Bias for second layer: [input_dim]
 
-    // Cache for backward
-    input: Vec<Vec<f32>>,
-    hidden: Vec<Vec<f32>>,
+    // Cache for backward pass
+    input: Vec<Vec<f32>>,  // Stores input to first layer during forward pass
+    hidden: Vec<Vec<f32>>, // Stores output of ReLU from first layer
 
-    // Gradients
+    // Gradients (same shape as weights and biases)
     grad_w1: Vec<Vec<f32>>,
     grad_b1: Vec<f32>,
     grad_w2: Vec<Vec<f32>>,
     grad_b2: Vec<f32>,
 }
 
+/// ReLU activation function
 fn relu(x: f32) -> f32 {
     x.max(0.0)
 }
 
 impl FeedForward {
+    /// Constructs a new FeedForward network with random weights
     pub fn new(input_dim: usize, hidden_dim: usize) -> Self {
         use rand::Rng;
         let mut rng = rand::thread_rng();
 
+        // Initialise weights randomly in [-0.1, 0.1]
         let w1 = (0..input_dim)
             .map(|_| (0..hidden_dim).map(|_| rng.gen_range(-0.1..0.1)).collect())
             .collect();
@@ -34,6 +38,7 @@ impl FeedForward {
             .collect();
         let b2 = vec![0.0; input_dim];
 
+        // Zero-initialised gradients
         let grad_w1 = vec![vec![0.0; hidden_dim]; input_dim];
         let grad_b1 = vec![0.0; hidden_dim];
         let grad_w2 = vec![vec![0.0; input_dim]; hidden_dim];
@@ -53,9 +58,11 @@ impl FeedForward {
         }
     }
 
+    /// Forward pass through the FeedForward network
     pub fn forward(&mut self, x: &[Vec<f32>]) -> Vec<Vec<f32>> {
-        self.input = x.to_vec();
+        self.input = x.to_vec(); // Store input for backward pass
 
+        // First linear layer + ReLU activation
         let hidden: Vec<Vec<f32>> = x
             .iter()
             .map(|vec| {
@@ -67,8 +74,9 @@ impl FeedForward {
             })
             .collect();
 
-        self.hidden = hidden.clone();
+        self.hidden = hidden.clone(); // Cache activations for backprop
 
+        // Second linear layer (no activation)
         hidden
             .iter()
             .map(|h| {
@@ -81,17 +89,20 @@ impl FeedForward {
             .collect()
     }
 
+    /// Backward pass: computes gradients w.r.t weights and inputs
     pub fn backward(
         &mut self,
-        grad_output: &Vec<Vec<f32>>,
-        _input_unused: &Vec<Vec<f32>>,
+        grad_output: &Vec<Vec<f32>>,   // dL/dOutput
+        _input_unused: &Vec<Vec<f32>>, // Placeholder, not used
     ) -> Vec<Vec<f32>> {
         let batch_size = grad_output.len();
         let hidden_dim = self.hidden[0].len();
         let input_dim = self.w1.len();
 
+        // Gradient of loss w.r.t hidden layer output (after ReLU)
         let mut grad_hidden = vec![vec![0.0; hidden_dim]; batch_size];
 
+        // Backprop through second linear layer: accumulate grad_w2 and grad_b2
         for i in 0..batch_size {
             for j in 0..self.w2[0].len() {
                 for k in 0..hidden_dim {
@@ -102,6 +113,7 @@ impl FeedForward {
             }
         }
 
+        // Backprop through ReLU (zero out where ReLU output was zero)
         for i in 0..batch_size {
             for j in 0..hidden_dim {
                 if self.hidden[i][j] <= 0.0 {
@@ -110,6 +122,7 @@ impl FeedForward {
             }
         }
 
+        // Backprop through first linear layer: accumulate grad_w1 and grad_b1
         let mut grad_input = vec![vec![0.0; input_dim]; batch_size];
         for i in 0..batch_size {
             for j in 0..hidden_dim {
@@ -121,22 +134,24 @@ impl FeedForward {
             }
         }
 
-        grad_input
+        grad_input // Return gradient w.r.t input for upstream layer
     }
 
+    /// SGD update step with gradient clipping
     pub fn step(&mut self, lr: f32) {
-        let clip_value: f32 = 1.;
-        // Clip 2D gradients row-wise
+        let clip_value: f32 = 1.0;
+
+        // Clip gradients to prevent exploding gradients
         for row in &mut self.grad_w1 {
             clip_gradient(row, clip_value);
         }
         for row in &mut self.grad_w2 {
             clip_gradient(row, clip_value);
         }
-
-        // Clip 1D gradients
         clip_gradient(&mut self.grad_b1, clip_value);
         clip_gradient(&mut self.grad_b2, clip_value);
+
+        // Gradient descent: w = w - lr * grad
         for i in 0..self.w1.len() {
             for j in 0..self.w1[0].len() {
                 self.w1[i][j] -= lr * self.grad_w1[i][j];
@@ -163,6 +178,7 @@ impl FeedForward {
     }
 }
 
+/// Clip gradient vector to a maximum L2 norm
 fn clip_gradient(grad: &mut [f32], clip_value: f32) {
     let norm: f32 = grad.iter().map(|x| x * x).sum::<f32>().sqrt();
     if norm > clip_value {

@@ -1,30 +1,37 @@
+
 use std::f32;
 
+/// A custom implementation of Layer Normalization.
+/// LayerNorm normalises each input vector (usually per data sample) independently.
 pub struct LayerNorm {
-    pub gamma: Vec<f32>,
-    pub beta: Vec<f32>,
-    pub eps: f32,
-    pub mean: Vec<f32>,
-    pub var: Vec<f32>,
-    pub normed: Vec<Vec<f32>>,
-    pub grad_gamma: Vec<f32>,
-    pub grad_beta: Vec<f32>,
+    pub gamma: Vec<f32>,       // Learnable scale parameter per feature
+    pub beta: Vec<f32>,        // Learnable shift parameter per feature
+    pub eps: f32,              // Small epsilon to avoid division by zero
+    pub mean: Vec<f32>,        // Stored mean per input vector (for backward)
+    pub var: Vec<f32>,         // Stored variance per input vector (for backward)
+    pub normed: Vec<Vec<f32>>, // Stored normalised inputs (used in backward)
+    pub grad_gamma: Vec<f32>,  // Accumulated gradient for gamma
+    pub grad_beta: Vec<f32>,   // Accumulated gradient for beta
 }
 
 impl LayerNorm {
+    /// Creates a new LayerNorm with input dimension `dim`.
     pub fn new(dim: usize) -> Self {
         let eps = 1e-6;
         Self {
-            gamma: vec![1.0; dim],
-            beta: vec![0.0; dim],
+            gamma: vec![1.0; dim], // Initialise gamma to 1
+            beta: vec![0.0; dim],  // Initialise beta to 0
             eps,
-            mean: vec![0.0; dim],
-            var: vec![0.0; dim],
-            normed: Vec::new(), // No initial data, empty vec of vecs
+            mean: vec![0.0; 0], // These will be filled during forward()
+            var: vec![0.0; 0],
+            normed: Vec::new(),
             grad_gamma: vec![0.0; dim],
             grad_beta: vec![0.0; dim],
         }
     }
+
+    /// Forward pass of LayerNorm.
+    /// Applies per-vector normalization across feature dimension.
     pub fn forward(&mut self, x: &[Vec<f32>]) -> Vec<Vec<f32>> {
         let mut normed_batch = Vec::with_capacity(x.len());
         let mut mean_batch = Vec::with_capacity(x.len());
@@ -37,7 +44,10 @@ impl LayerNorm {
             let normed: Vec<f32> = vec
                 .iter()
                 .enumerate()
-                .map(|(i, v)| self.gamma[i] * ((v - mean) / (var + self.eps).sqrt()) + self.beta[i])
+                .map(|(i, v)| {
+                    // Normalise each input then scale and shift it
+                    self.gamma[i] * ((v - mean) / (var + self.eps).sqrt()) + self.beta[i]
+                })
                 .collect();
 
             mean_batch.push(mean);
@@ -45,7 +55,7 @@ impl LayerNorm {
             normed_batch.push(normed);
         }
 
-        // Store for backward pass
+        // Save intermediate values for backpropagation
         self.normed = normed_batch.clone();
         self.mean = mean_batch;
         self.var = var_batch;
@@ -53,8 +63,10 @@ impl LayerNorm {
         normed_batch
     }
 
-    // grad_output shape: [batch_size][dim]
-    // input shape: [batch_size][dim]
+    /// Backward pass to compute gradient of the loss w.r.t. inputs.
+    ///
+    /// `grad_output` is ∂L/∂y, the gradient from the next layer.
+    /// `input` is the original input batch.
     pub fn backward(
         &mut self,
         grad_output: &Vec<Vec<f32>>,
@@ -63,54 +75,45 @@ impl LayerNorm {
         let batch_size = grad_output.len();
         let dim = self.gamma.len();
 
-        // Reset grad_gamma and grad_beta before accumulation
+        // Reset gradients to zero before accumulation
         for i in 0..dim {
             self.grad_gamma[i] = 0.0;
             self.grad_beta[i] = 0.0;
         }
 
-        // Calculate gradients for gamma and beta
+        // Accumulate gradients for gamma and beta (per feature)
         for b in 0..batch_size {
             for i in 0..dim {
-                // dL/dgamma = sum over batch of grad_output * normed
                 self.grad_gamma[i] += grad_output[b][i] * self.normed[b][i];
-                // dL/dbeta = sum over batch of grad_output
                 self.grad_beta[i] += grad_output[b][i];
             }
         }
 
-        // Now compute gradient wrt input
-        // Using LayerNorm backward formula:
-        //
-        // Let:
-        // x_hat = normed[b][i]
-        // N = dim
-        //
-        // dL/dx = (1 / sqrt(var + eps)) * (grad_output * gamma - mean(grad_output * gamma) - x_hat * mean(grad_output * gamma * x_hat))
-        //
-        // We'll compute these terms per batch
-
+        // Now compute gradients w.r.t. input
         let mut grad_input = vec![vec![0.0; dim]; batch_size];
 
         for b in 0..batch_size {
-            // Compute mean of grad_output * gamma
-            let mut grad_output_gamma_mean = 0.0;
-            for i in 0..dim {
-                grad_output_gamma_mean += grad_output[b][i] * self.gamma[i];
-            }
-            grad_output_gamma_mean /= dim as f32;
+            // Compute intermediate values for the formula
+            let var = self.var[b];
+            let inv_std = 1.0 / (var + self.eps).sqrt();
 
-            // Compute mean of grad_output * gamma * normed
+            let mut grad_output_gamma_mean = 0.0;
             let mut grad_output_gamma_normed_mean = 0.0;
+
             for i in 0..dim {
-                grad_output_gamma_normed_mean +=
-                    grad_output[b][i] * self.gamma[i] * self.normed[b][i];
+                let go_gamma = grad_output[b][i] * self.gamma[i];
+                grad_output_gamma_mean += go_gamma;
+                grad_output_gamma_normed_mean += go_gamma * self.normed[b][i];
             }
+
+            grad_output_gamma_mean /= dim as f32;
             grad_output_gamma_normed_mean /= dim as f32;
 
+            // Now calculate gradient for each feature
             for i in 0..dim {
-                grad_input[b][i] = (1.0 / (self.var[i] + self.eps).sqrt())
-                    * (grad_output[b][i] * self.gamma[i]
+                let go_gamma = grad_output[b][i] * self.gamma[i];
+                grad_input[b][i] = inv_std
+                    * (go_gamma
                         - grad_output_gamma_mean
                         - self.normed[b][i] * grad_output_gamma_normed_mean);
             }
@@ -119,14 +122,15 @@ impl LayerNorm {
         grad_input
     }
 
+    /// Gradient descent step: update `gamma` and `beta` using accumulated gradients.
     pub fn step(&mut self, lr: f32) {
         for i in 0..self.gamma.len() {
             self.gamma[i] -= lr * self.grad_gamma[i];
-            self.grad_gamma[i] = 0.0;
+            self.grad_gamma[i] = 0.0; // Reset after update
         }
         for i in 0..self.beta.len() {
             self.beta[i] -= lr * self.grad_beta[i];
-            self.grad_beta[i] = 0.0;
+            self.grad_beta[i] = 0.0; // Reset after update
         }
     }
 }
