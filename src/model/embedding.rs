@@ -1,4 +1,4 @@
-
+use rand::thread_rng;
 use rand::Rng;
 pub struct Embedding {
     pub weight: Vec<Vec<f32>>,       // shape: [vocab_size][embedding_dim]
@@ -65,10 +65,21 @@ impl Embedding {
 
     pub fn step(&mut self, lr: f32) {
         for (w_row, g_row) in self.weight.iter_mut().zip(self.grad_weight.iter_mut()) {
+            clip_gradient(g_row, 1.);
             for (w, g) in w_row.iter_mut().zip(g_row.iter_mut()) {
                 *w -= lr * *g;
                 *g = 0.0; // reset gradient after update
             }
+        }
+    }
+}
+
+fn clip_gradient(grad: &mut [f32], clip_value: f32) {
+    let norm: f32 = grad.iter().map(|x| x * x).sum::<f32>().sqrt();
+    if norm > clip_value {
+        let scale = clip_value / norm;
+        for g in grad.iter_mut() {
+            *g *= scale;
         }
     }
 }

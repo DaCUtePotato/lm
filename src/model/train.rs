@@ -4,8 +4,8 @@ pub fn cross_entropy_loss(logits: &Vec<Vec<f32>>, targets: &[usize]) -> f32 {
         let max_logit = logit.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
         let exp: Vec<f32> = logit.iter().map(|x| (x - max_logit).exp()).collect();
         let sum_exp: f32 = exp.iter().sum();
-        let log_probs: Vec<f32> = exp.iter().map(|x| x.ln() - sum_exp.ln()).collect();
-        loss -= log_probs[target];
+        let log_prob = logit[target] - max_logit - sum_exp.ln();
+        loss -= log_prob;
     }
     loss / logits.len() as f32
 }

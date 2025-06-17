@@ -1,4 +1,6 @@
-use rand::Rng;
+use rand::distr::weighted::WeightedIndex;
+use rand::distr::Distribution;
+use rand::{thread_rng, Rng};
 
 pub struct OutputProjection {
     weights: Vec<Vec<f32>>, // vocab_size x embedding_dim
@@ -94,6 +96,14 @@ impl OutputProjection {
     }
 
     pub fn step(&mut self, lr: f32) {
+        let clip_value: f32 = 1.;
+        // Clip gradients for each row of weights
+        for grad_row in &mut self.grad_weights {
+            clip_gradient(grad_row, clip_value);
+        }
+
+        // Clip bias gradients
+        clip_gradient(&mut self.grad_biases, clip_value);
         let vocab_size = self.biases.len();
         let embedding_dim = self.weights[0].len();
 
@@ -108,4 +118,40 @@ impl OutputProjection {
         // After the step, gradients could be cleared here if desired
         // but since backward clears them, this isn't mandatory.
     }
+}
+
+fn clip_gradient(grad: &mut [f32], clip_value: f32) {
+    let norm: f32 = grad.iter().map(|x| x * x).sum::<f32>().sqrt();
+    if norm > clip_value {
+        let scale = clip_value / norm;
+        for g in grad.iter_mut() {
+            *g *= scale;
+        }
+    }
+}
+
+pub fn sample(logits: &[f32], temperature: f32, top_k: usize) -> usize {
+    let mut rng = thread_rng();
+    let mut logits: Vec<(usize, f32)> = logits
+        .iter()
+        .enumerate()
+        .map(|(i, &x)| (i, x / temperature))
+        .collect();
+
+    // Keep top-k
+    logits.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+    logits.truncate(top_k);
+
+    // Re-normalise
+    let max_logit = logits
+        .iter()
+        .map(|(_, v)| *v)
+        .fold(f32::NEG_INFINITY, f32::max);
+    let exps: Vec<f32> = logits.iter().map(|(_, x)| (x - max_logit).exp()).collect();
+    let sum: f32 = exps.iter().sum();
+    let probs: Vec<f32> = exps.iter().map(|x| x / sum).collect();
+
+    // Sample
+    let dist = WeightedIndex::new(&probs).unwrap();
+    logits[dist.sample(&mut rng)].0
 }

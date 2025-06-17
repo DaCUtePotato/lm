@@ -1,15 +1,12 @@
-<<<<<<< HEAD
-=======
-
 #![allow(unused)]
 #![allow(dead_code)]
 #![allow(deprecated)]
->>>>>>> 51c0974ad85447a0ac6feb49b75c4c85f46ebf84
 mod dataset;
 mod model;
 mod tokenizer;
 mod transformermodel;
 
+use model::output::sample;
 use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::io::{stdout, Write};
@@ -37,7 +34,6 @@ fn clip_gradients(grads: &mut [Vec<f32>], max_norm: f32) {
     }
 }
 
-
 fn main() {
     let train = true;
     let num_heads = 4;
@@ -52,6 +48,9 @@ fn main() {
 
     let (train_set, _val_set) = split_dataset(&lines, 0.9);
     let joined_train = train_set.join("\n");
+
+    let temperature = 0.6; // tune this, e.g., 0.8, 1.0, 1.2
+    let top_k = 10; // tune top-k for filtering
 
     let vocab: HashMap<char, usize> = if !Path::new(vocab_filename).exists() {
         let v = build_char_vocab(&lines, min_freq);
@@ -142,13 +141,8 @@ fn main() {
         }
     }
 
-<<<<<<< HEAD
     //testing
     let example = "Entropie ";
-=======
-    // === Testing ===
-    let example = "Hello World!";
->>>>>>> 51c0974ad85447a0ac6feb49b75c4c85f46ebf84
     let token_ids: Vec<usize> = example
         .chars()
         .filter_map(|ch| vocab.get(&ch).copied())

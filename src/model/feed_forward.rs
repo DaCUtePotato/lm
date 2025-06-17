@@ -125,6 +125,18 @@ impl FeedForward {
     }
 
     pub fn step(&mut self, lr: f32) {
+        let clip_value: f32 = 1.;
+        // Clip 2D gradients row-wise
+        for row in &mut self.grad_w1 {
+            clip_gradient(row, clip_value);
+        }
+        for row in &mut self.grad_w2 {
+            clip_gradient(row, clip_value);
+        }
+
+        // Clip 1D gradients
+        clip_gradient(&mut self.grad_b1, clip_value);
+        clip_gradient(&mut self.grad_b2, clip_value);
         for i in 0..self.w1.len() {
             for j in 0..self.w1[0].len() {
                 self.w1[i][j] -= lr * self.grad_w1[i][j];
@@ -147,6 +159,16 @@ impl FeedForward {
         for i in 0..self.b2.len() {
             self.b2[i] -= lr * self.grad_b2[i];
             self.grad_b2[i] = 0.0;
+        }
+    }
+}
+
+fn clip_gradient(grad: &mut [f32], clip_value: f32) {
+    let norm: f32 = grad.iter().map(|x| x * x).sum::<f32>().sqrt();
+    if norm > clip_value {
+        let scale = clip_value / norm;
+        for g in grad.iter_mut() {
+            *g *= scale;
         }
     }
 }

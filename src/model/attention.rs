@@ -207,6 +207,26 @@ impl MultiHeadAttention {
     }
 
     pub fn step(&mut self, lr: f32) {
+        let clip_value = 1.;
+        // Clip 1D gradients
+        clip_gradient(&mut self.grad_b_q, clip_value);
+        clip_gradient(&mut self.grad_b_k, clip_value);
+        clip_gradient(&mut self.grad_b_v, clip_value);
+        clip_gradient(&mut self.grad_b_o, clip_value);
+
+        // Clip 2D gradients row-wise
+        for row in &mut self.grad_w_q {
+            clip_gradient(row, clip_value);
+        }
+        for row in &mut self.grad_w_k {
+            clip_gradient(row, clip_value);
+        }
+        for row in &mut self.grad_w_v {
+            clip_gradient(row, clip_value);
+        }
+        for row in &mut self.grad_w_o {
+            clip_gradient(row, clip_value);
+        }
         for i in 0..self.embed_dim {
             self.b_q[i] -= lr * self.grad_b_q[i];
             self.b_k[i] -= lr * self.grad_b_k[i];
@@ -587,4 +607,14 @@ pub fn split_heads(x: &[Vec<f32>], num_heads: usize) -> Vec<Vec<Vec<f32>>> {
         }
     }
     result
+}
+
+fn clip_gradient(grad: &mut [f32], clip_value: f32) {
+    let norm: f32 = grad.iter().map(|x| x * x).sum::<f32>().sqrt();
+    if norm > clip_value {
+        let scale = clip_value / norm;
+        for g in grad.iter_mut() {
+            *g *= scale;
+        }
+    }
 }
