@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.6.5)  6 JUN 2025 22:07
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.6.15)  17 JUN 2025 20:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -248,13 +248,13 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-Overfull \hbox (31.87341pt too wide) in paragraph at lines 11--12
-\OT1/cmr/m/n/12 Wir ken-nen sie alle und haben sie mit Sicher-heit schon ein-ma
-l bentzt: LM(Language
+Overfull \hbox (5.52786pt too wide) in paragraph at lines 12--13
+\OT1/cmr/m/n/12 In un-serem Pro-jekt geht es darum, ein funk-tion-ieren-des LM(
+Language Model)-
  []
 
 
-Overfull \hbox (2.89374pt too wide) in paragraph at lines 12--12
+Overfull \hbox (2.89374pt too wide) in paragraph at lines 13--13
 []\OT1/cmr/bx/n/17.28 Tokenizing, Dataset, Em-bed-ding Layer, Vo-
  []
 
@@ -262,11 +262,11 @@ Overfull \hbox (2.89374pt too wide) in paragraph at lines 12--12
 
 [2]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 21.
+(Font)              <12> on input line 22.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 21.
+(Font)              <8> on input line 22.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 21.
+(Font)              <6> on input line 22.
 
 
 [3]
@@ -277,25 +277,24 @@ LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `Document.out' has not changed.
-(rerunfilecheck)             Checksum: 2839C0C9643607A874EDA2EB66465231;638.
+(rerunfilecheck)             Checksum: 7C1FB50B3AA11D9C494AC3AB90AB91BB;784.
  ) 
 Here is how much of TeX's memory you used:
- 8458 strings out of 475171
- 130341 string characters out of 5767096
- 527049 words of memory out of 5000000
- 31379 multiletter control sequences out of 15000+600000
- 563738 words of font info for 52 fonts, out of 8000000 for 9000
+ 8460 strings out of 475171
+ 130360 string characters out of 5767095
+ 527093 words of memory out of 5000000
+ 31380 multiletter control sequences out of 15000+600000
+ 563391 words of font info for 51 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,7n,79p,1024b,436s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,7n,79p,1328b,436s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmr17.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-ti12.pfb>
-Output written on Document.pdf (4 pages, 70877 bytes).
+/amsfonts/cm/cmr17.pfb>
+Output written on Document.pdf (4 pages, 65251 bytes).
 PDF statistics:
- 73 PDF objects out of 1000 (max. 8388607)
- 56 compressed objects within 1 object stream
- 10 named destinations out of 1000 (max. 500000)
- 41 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 76 PDF objects out of 1000 (max. 8388607)
+ 61 compressed objects within 1 object stream
+ 12 named destinations out of 1000 (max. 500000)
+ 57 words of extra memory for PDF output out of 10000 (max. 10000000)
 
